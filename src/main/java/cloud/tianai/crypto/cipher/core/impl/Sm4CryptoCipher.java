@@ -1,5 +1,7 @@
-package cloud.tianai.crypto.cipher.core;
+package cloud.tianai.crypto.cipher.core.impl;
 
+import cloud.tianai.crypto.cipher.core.AbstractCryptoCipher;
+import cloud.tianai.crypto.cipher.core.CryptoCipher;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

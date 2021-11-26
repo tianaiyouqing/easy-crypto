@@ -24,15 +24,6 @@ import java.util.Arrays;
  */
 @Slf4j
 public abstract class AbstractCryptoCipher extends CryptoCipher {
-
-    public static final String CONTENT_CIPHER_ALGORITHM = "AES/CTR/NoPadding";
-    public static final String KEY_GENERATOR_ALGORITHM = "AES";
-    public static final int KEY_LENGTH_IN_BITS = 256;
-    public static final int CIPHER_IV_LENGTH = 16;
-    public static final int VERSION_V1 = 1;
-
-    private static final SecureRandom RANDOM = new SecureRandom();
-
     private byte[] iv;
     private SecretKey secretKey;
     private byte[] encryptedIV;

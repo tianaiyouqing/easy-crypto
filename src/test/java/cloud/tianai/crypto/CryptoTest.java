@@ -1,7 +1,7 @@
 package cloud.tianai.crypto;
 
 import cloud.tianai.crypto.cipher.CryptoCipherBuilder;
-import cloud.tianai.crypto.cipher.core.AesCryptoCipher;
+import cloud.tianai.crypto.cipher.core.impl.AesCryptoCipher;
 import cloud.tianai.crypto.cipher.core.CryptoCipher;
 import cloud.tianai.crypto.cipher.util.CryptoRuntime;
 import cloud.tianai.crypto.cipher.util.RsaUtils;

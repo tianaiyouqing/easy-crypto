@@ -1,6 +1,6 @@
 package cloud.tianai.crypto.cipher;
 
-import cloud.tianai.crypto.cipher.core.AesCryptoCipher;
+import cloud.tianai.crypto.cipher.core.impl.AesCryptoCipher;
 import cloud.tianai.crypto.cipher.core.CryptoCipher;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
