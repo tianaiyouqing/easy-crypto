@@ -1,11 +1,15 @@
-# 这是一个高性能的加解密文件(或其它需要加密的)的工具
-
-- 特点一: 使用流式加密/解密， 性能更好，内存损耗更少(几乎不消耗额外内存)；更加方便，更易读
-- 特点二: 加密底层均为性能强大的AES加密，外层使用自定义加密算法加密，性能显著提升
-- 特点三: 代码结构简单，原理易懂，更加方便扩展， 可使用任意一种加密算法进行文件或其它需要加密的
-
-# 示例代码
-- 这里示例使用 3des和RSA和自定义加密算法(sm4) 进行加解密文件操作，各位可以使用自己的加密算法进行加解密
+# 这是一个高性能的加解密文件(或其它需要加密的)和文件校验工具包
+## 特点
+- 文件加密
+  - 特点一: 使用流式加密/解密， 性能更好，内存损耗更少(几乎不消耗额外内存)；更加方便，更易读
+  - 特点二: 加密底层均为性能强大的AES加密，外层使用自定义加密算法加密，性能显著提升
+  - 特点三: 代码结构简单，原理易懂，更加方便扩展， 可使用任意一种加密算法进行文件或其它需要加密的
+- 文件校验
+  - 特点一: 重写了java自带的 `CheckedInputStream`和 `CheckedOutputStream` 使其支持主流文件校验值，如md5、sha256、crc64等
+  - 特点二: 支持多个校验值一起获取，比如同时获取某文件的 md5和sha256
+  - 特点三: 自带了 md5、sha256、crc64 等主流校验算法，开箱即用,且代码简单易于扩展.
+## 文件加密示例代码
+- 这里示例仅演示`EnhanceCheckedInputStream`的用法， `EnhanceCheckedOutputStream`用法同理
 ```java
 public class CryptoTest {
 
@@ -199,7 +203,69 @@ public class CryptoTest {
     }
 }
 ```
-# 有几点要说
+### 有几点要说
 - CipherOutputStream 暂时只支持加密功能，不支持解密，后续可能会加上改功能，
   暂时推荐使用 CipherInputStream
 - qq群: 1021884609
+## 文件校验示例代码
+```java
+public class CheckedTest {
+
+    /**
+     * 获取一个文件的 md5
+     */
+    @Test
+    public void getFileMd5() throws IOException {
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\预览20M.pdf");
+        Md5Checksum md5Checksum = new Md5Checksum();
+        EnhanceCheckedInputStream checkedInputStream = new EnhanceCheckedInputStream(source, md5Checksum);
+        readAll(checkedInputStream);
+        byte[] md5 = md5Checksum.getCheckValue();
+        System.out.println("md5:" + Hex.toHexString(md5));
+    }
+
+    /**
+     * 获取一个文件的 crc64
+     */
+    @Test
+    public void getFileCrc64() throws IOException {
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\预览20M.pdf");
+        CRC64Checksum crc64Checksum = new CRC64Checksum();
+        EnhanceCheckedInputStream checkedInputStream = new EnhanceCheckedInputStream(source, crc64Checksum);
+        readAll(checkedInputStream);
+        Long crc64 = crc64Checksum.getCheckValue();
+        System.out.println("crc64:" + crc64);
+    }
+
+
+    /**
+     * 同时获取一个文件的  md5、crc64、sha256
+     */
+    @Test
+    public void getFileChecksum() throws IOException {
+        Md5Checksum md5Checksum = new Md5Checksum();
+        CRC64Checksum crc64Checksum = new CRC64Checksum();
+        Sha256Checksum sha256Checksum = new Sha256Checksum();
+        MultiPartChecksum multiPartChecksum = new MultiPartChecksum(md5Checksum, crc64Checksum, sha256Checksum);
+
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\预览20M.pdf");
+        EnhanceCheckedInputStream checkedInputStream = new EnhanceCheckedInputStream(source, multiPartChecksum);
+        readAll(checkedInputStream);
+
+        System.out.println("md5:" + Hex.toHexString(md5Checksum.getCheckValue()));
+        System.out.println("crc64:" + crc64Checksum.getCheckValue());
+        System.out.println("sha256:" + Hex.toHexString(sha256Checksum.getCheckValue()));
+
+    }
+
+
+    public void readAll(InputStream input) throws IOException {
+        byte[] buffer = new byte[4096];
+        while (-1 != input.read(buffer)) {
+
+        }
+    }
+}
+```
