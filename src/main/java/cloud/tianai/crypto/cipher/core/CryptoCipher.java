@@ -1,33 +1,26 @@
 package cloud.tianai.crypto.cipher.core;
 
-import lombok.Getter;
+import cloud.tianai.crypto.stream.CipherInputStream;
+import cloud.tianai.crypto.stream.CipherOutputStream;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * @Author: 天爱有情
  * @Date 2020/9/2 15:25
- * @Description 加密的密码
+ * @Description 加密的密码接口
  */
-@Getter
-public class CryptoCipher {
+public interface CryptoCipher {
+
 
     /**
-     * 密码.
+     * {@link javax.crypto.Cipher#ENCRYPT_MODE} 加密
+     * {@link javax.crypto.Cipher#DECRYPT_MODE} 解密
+     *
+     * @return int
      */
-    protected Cipher cipher;
-
-    /** model， 标识加密还是解密. */
-    protected int model;
-
-    public CryptoCipher(Cipher cipher, int model) {
-        this.cipher = cipher;
-        this.model = model;
-    }
+    int getModel();
 
     /**
      * 上传完后最终执行的方法， 适用于在文件尾加一些数据
@@ -36,9 +29,7 @@ public class CryptoCipher {
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException
      */
-    public byte[] end() throws IllegalBlockSizeException, BadPaddingException {
-        return cipher.doFinal();
-    }
+    byte[] end() throws IllegalBlockSizeException, BadPaddingException;
 
 
     /**
@@ -49,45 +40,27 @@ public class CryptoCipher {
      * @param inputLen    inputLen
      * @return 加解密返回的内容
      */
-    public byte[] update(byte[] input, int inputOffset, int inputLen) {
-        return cipher.update(input, inputOffset, inputLen);
-    }
+    byte[] update(byte[] input, int inputOffset, int inputLen);
 
+    byte[] earlyLoadingHeaderData(CipherInputStream source);
 
-    public byte[] earlyLoadingHeaderData(InputStream source) {
-        return new byte[0];
-    }
+    byte[] earlyLoadingHeaderData(CipherOutputStream source);
 
     /**
      * 开始读取信息了, 给加密和解密函数预留自定义读取文件字节接口，用作加密/解密前准备
      *
      * @param source 原文件流
      */
-    public byte[] start(InputStream source) {
-        return null;
-    }
+    byte[] start(CipherInputStream source);
+
+    byte[] start(CipherOutputStream source);
+
 
     /**
      * 重新创建一个新的 CryptoCipher
      *
      * @return CryptoCipher
      */
-    public CryptoCipher recreate() {
-        return new CryptoCipher(this.cipher, this.model);
-    }
-
-
-    /**
-     * 开始读取信息了, 给加密和解密函数预留自定义读取文件字节接口，用作加密/解密前准备
-     *
-     * @param source 原文件流
-     */
-    public byte[] start(OutputStream source) {
-        return null;
-    }
-
-    public byte[] earlyLoadingHeaderData(OutputStream source) {
-        return new byte[0];
-    }
+    CryptoCipher recreate();
 
 }

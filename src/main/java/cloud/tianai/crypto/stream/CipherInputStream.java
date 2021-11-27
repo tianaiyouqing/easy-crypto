@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @Author: 天爱有情
  * @date 2021/11/25 10:11
- * @Description 带有密码的输入流,支持加解密操作
+ * @Description 带有密码的输入流, 支持加解密操作
  */
 @Slf4j
 public class CipherInputStream extends SdkFilterInputStream {
@@ -24,7 +24,8 @@ public class CipherInputStream extends SdkFilterInputStream {
     private CryptoCipher cryptoCipher;
 
     private boolean hasBeenAccessed;
-    private final byte[] bufIn;
+    private byte[] bufIn;
+    private int bufferSize;
     private boolean eof;
     private byte[] bufOut;
     private int currPos;
@@ -37,15 +38,34 @@ public class CipherInputStream extends SdkFilterInputStream {
     public CipherInputStream(InputStream is, CryptoCipher c, int buffSize) {
         super(is);
         this.cryptoCipher = c;
-        if (buffSize <= 0 || (buffSize % POSITIVE_MULTIPLE) != 0) {
-            throw new IllegalArgumentException(
-                    "buffSize (" + buffSize + ") must be a positive multiple of " + POSITIVE_MULTIPLE);
+//        if (buffSize <= 0 || (buffSize % POSITIVE_MULTIPLE) != 0) {
+//            throw new IllegalArgumentException(
+//                    "buffSize (" + buffSize + ") must be a positive multiple of " + POSITIVE_MULTIPLE);
+//        }
+        this.bufferSize = buffSize;
+    }
+
+    public int getBuffSize() {
+        return this.bufferSize;
+    }
+
+    public void setBuffSize(int bufferSize) {
+        this.bufferSize = bufferSize;
+    }
+
+    public byte[] getBufIn() {
+        if (this.bufIn == null) {
+            this.bufIn = new byte[this.bufferSize];
         }
-        this.bufIn = new byte[buffSize];
+        return this.bufIn;
+    }
+
+    public void setBufIn(byte[] bufIn) {
+        this.bufIn = bufIn;
     }
 
     public int earlyGetHeaderSize() {
-        return cryptoCipher.earlyLoadingHeaderData(in).length;
+        return cryptoCipher.earlyLoadingHeaderData(this).length;
     }
 
     @Override
@@ -186,12 +206,13 @@ public class CipherInputStream extends SdkFilterInputStream {
             // 第一次读
             // 做读处理
             // 如果返回了数据，则不往下执行
-            bufOut = cryptoCipher.start(in);
+            bufOut = cryptoCipher.start(this);
             if (bufOut != null) {
                 currPos = 0;
                 return maxPos = bufOut.length;
             }
         }
+        byte[] bufIn = getBufIn();
         int len = in.read(bufIn);
         if (len == -1) {
             eof = true;

@@ -1,6 +1,8 @@
 package cloud.tianai.crypto.cipher.core;
 
 import cloud.tianai.crypto.exception.CryptoCipherException;
+import cloud.tianai.crypto.stream.CipherInputStream;
+import cloud.tianai.crypto.stream.CipherOutputStream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +25,7 @@ import java.util.Arrays;
  * +---------+-----------+----------+---------+--------+------+
  */
 @Slf4j
-public abstract class AbstractCryptoCipher extends CryptoCipher {
+public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
     private byte[] iv;
     private SecretKey secretKey;
     private byte[] encryptedIV;
@@ -51,26 +53,25 @@ public abstract class AbstractCryptoCipher extends CryptoCipher {
     }
 
     @Override
-    public byte[] earlyLoadingHeaderData(InputStream source) {
-        return getHeaderData(source);
+    public byte[] earlyLoadingHeaderData(CipherInputStream source) {
+        return getHeaderData(source.getDelegateStream());
     }
 
     @Override
-    public byte[] earlyLoadingHeaderData(OutputStream source) {
-        return getHeaderData(source);
+    public byte[] earlyLoadingHeaderData(CipherOutputStream source) {
+        return getHeaderData(source.getDelegateStream());
     }
 
     @Override
-    public byte[] start(InputStream source) {
-        return getHeaderData(source);
+    public byte[] start(CipherInputStream source) {
+        return getHeaderData(source.getDelegateStream());
     }
 
 
     @Override
-    public byte[] start(OutputStream source) {
-        return getHeaderData(source);
+    public byte[] start(CipherOutputStream source) {
+        return getHeaderData(source.getDelegateStream());
     }
-
 
     public byte[] getHeaderData(InputStream source) {
         if (headerData == null) {

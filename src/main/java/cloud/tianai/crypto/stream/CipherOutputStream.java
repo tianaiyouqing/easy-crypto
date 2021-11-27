@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @Description 带有密码的输出流
  */
 @Slf4j
-public class CipherOutputStream extends FilterOutputStream {
+public class CipherOutputStream extends SdkFilterOutputStream {
     private final AtomicBoolean firstRead = new AtomicBoolean(false);
     private CryptoCipher cryptoCipher;
 
@@ -33,7 +33,7 @@ public class CipherOutputStream extends FilterOutputStream {
     }
 
     public int earlyGetHeaderSize() {
-        return cryptoCipher.earlyLoadingHeaderData(out).length;
+        return cryptoCipher.earlyLoadingHeaderData(this).length;
     }
 
 
@@ -52,7 +52,7 @@ public class CipherOutputStream extends FilterOutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
         if (firstRead.compareAndSet(false, true)) {
             // 第一次写
-            byte[] start = cryptoCipher.start(out);
+            byte[] start = cryptoCipher.start(this);
             if(start != null && start.length > 0) {
                 out.write(start);
             }

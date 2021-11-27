@@ -53,13 +53,16 @@ public class CheckedTest {
         Sha256Checksum sha256Checksum = new Sha256Checksum();
         MultiPartChecksum multiPartChecksum = new MultiPartChecksum(md5Checksum, crc64Checksum, sha256Checksum);
 
-        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\预览20M.pdf");
+        long start = System.currentTimeMillis();
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\source.zip");
         EnhanceCheckedInputStream checkedInputStream = new EnhanceCheckedInputStream(source, multiPartChecksum);
         readAll(checkedInputStream);
-
+        long end = System.currentTimeMillis();
+        System.out.println("文件大小:1.91 GB");
         System.out.println("md5:" + Hex.toHexString(md5Checksum.getCheckValue()));
         System.out.println("crc64:" + crc64Checksum.getCheckValue());
         System.out.println("sha256:" + Hex.toHexString(sha256Checksum.getCheckValue()));
+        System.out.println("耗时:" + (end - start) + "ms");
 
     }
 

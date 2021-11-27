@@ -1,8 +1,9 @@
 package cloud.tianai.crypto;
 
 import cloud.tianai.crypto.cipher.CryptoCipherBuilder;
-import cloud.tianai.crypto.cipher.core.impl.AesCryptoCipher;
 import cloud.tianai.crypto.cipher.core.CryptoCipher;
+import cloud.tianai.crypto.cipher.core.impl.AesCryptoCipher;
+import cloud.tianai.crypto.cipher.core.impl.Base64CryptoCipher;
 import cloud.tianai.crypto.cipher.util.CryptoRuntime;
 import cloud.tianai.crypto.cipher.util.RsaUtils;
 import cloud.tianai.crypto.stream.CipherInputStream;
@@ -231,6 +232,57 @@ public class CryptoTest {
         write(cipherInputStream, outputStream);
         outputStream.close();
         cipherInputStream.close();
+    }
+
+
+    /**
+     * 使用 CipherInputStream 加密 源文件, 使用base64加密
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testEncryptByInputStreamAndBase64() throws IOException {
+        long start = System.currentTimeMillis();
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\预览20M.pdf");
+        // 包装成加密流
+        //注意： 这里指定的 bufferSize会影响到加密流的buffer， 也就是说这里指定的buff长度和加密流中的长度不一样时，会使用这里的长度,
+        //     因为类似于base64这种加密后解密需要加密长度的加密(转码)算法时，必须由算法本身计算长度
+        Base64CryptoCipher cipher = new Base64CryptoCipher(Cipher.ENCRYPT_MODE, 4096);
+        CipherInputStream cipherInputStream = new CipherInputStream(source, cipher);
+        // 输出
+        FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\加密-预览20M.pdf");
+        write(cipherInputStream, outputStream);
+        outputStream.close();
+        cipherInputStream.close();
+        long end = System.currentTimeMillis();
+        // 1207 1248 1238 1230 1169 1247
+        // 775 745 794 797 764 790
+        System.out.println("耗时:" + (end - start));
+    }
+
+
+    /**
+     * 使用 CipherInputStream 解密加密的文件, 使用base64解密
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testDecryptByInputStreamAndBase64() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+        long start = System.currentTimeMillis();
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\加密-预览20M.pdf");
+        //注意： 这里指定的 bufferSize会影响到加密流的buffer， 也就是说这里指定的buff长度和加密流中的长度不一样时，会使用这里的长度,
+        //     因为类似于base64这种加密后解密需要加密长度的加密(转码)算法时，必须由算法本身计算长度
+        Base64CryptoCipher cipher = new Base64CryptoCipher(Cipher.DECRYPT_MODE, 4096);
+        CipherInputStream cipherInputStream = new CipherInputStream(source, cipher);
+        // 输出
+        FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\解密-预览20M.pdf");
+        write(cipherInputStream, outputStream);
+        outputStream.close();
+        cipherInputStream.close();
+        long end = System.currentTimeMillis();
+        System.out.println("耗时:" + (end - start));
     }
 
 
