@@ -1,4 +1,4 @@
-# 这是一个高性能的加解密文件(或其它需要加密的)和文件校验工具包
+# 这是一个高性能的加解密文件(或其它需要加密的)和获取文件签名(md5、sha、crc等)工具包
 ## 特点
 - 文件加密
   - 特点一: 使用流式加密/解密， 性能更好，内存损耗更少(几乎不消耗额外内存)；更加方便，更易读
@@ -254,7 +254,6 @@ public class CryptoTest {
 ### 有几点要说
 - CipherOutputStream 暂时只支持加密功能，不支持解密，后续可能会加上改功能，
   暂时推荐使用 CipherInputStream
-- qq群: 1021884609
 ## 文件校验示例代码
 - 这里示例仅演示`EnhanceCheckedInputStream`的用法， `EnhanceCheckedOutputStream`用法同理
 ```java
@@ -318,3 +317,4 @@ public class CheckedTest {
     }
 }
 ```
+# qq群: 1021884609
