@@ -63,4 +63,11 @@ public interface CryptoCipher {
      */
     CryptoCipher recreate();
 
+    /**
+     * 获取版本号
+     *
+     * @return int
+     */
+    int getVersion();
+
 }

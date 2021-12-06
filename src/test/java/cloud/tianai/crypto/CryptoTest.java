@@ -285,6 +285,37 @@ public class CryptoTest {
         System.out.println("耗时:" + (end - start));
     }
 
+    @Test
+    public void testEncryptDynamic() throws IOException {
+        long start = System.currentTimeMillis();
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\预览20M.pdf");
+        // 包装成加密流
+        CipherInputStream cipherInputStream = new CipherInputStream(source, CryptoCipherBuilder.buildDes3Crypt("123456781234567812345678", true));
+        // 输出
+        FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\加密-预览20M.pdf");
+        write(cipherInputStream, outputStream);
+        outputStream.close();
+        cipherInputStream.close();
+        long end = System.currentTimeMillis();
+        // 1207 1248 1238 1230 1169 1247
+        // 775 745 794 797 764 790
+        System.out.println("耗时:" + (end - start));
+    }
+
+    @Test
+    public void testDecryptDynamic() throws IOException {
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\加密-预览20M.pdf");
+        // 包装成解密流
+        CryptoCipher cryptoCipher = CryptoCipherBuilder.buildDes3Crypt("123456781234567812345678", false);
+        CipherInputStream cipherInputStream = new CipherInputStream(source, cryptoCipher);
+        // 输出
+        FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\解密-预览20M.pdf");
+        write(cipherInputStream, outputStream);
+        outputStream.close();
+        cipherInputStream.close();
+    }
+
 
     public void write(InputStream input, OutputStream output) throws IOException {
         byte[] buffer = new byte[4096];
