@@ -11,7 +11,41 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <skipTests>true</skipTests>
+        <!--        <skip.nexus>false</skip.nexus>-->
+        <!--        <deplay.id>ossrh</deplay.id>-->
+        <!--        <deplay.repository>https://oss.sonatype.org/service/local/staging/deploy/maven2/</deplay.repository>-->
+        <!--        <deplay.snapshotRepository>https://oss.sonatype.org/content/repositories/snapshots/</deplay.snapshotRepository>-->
+
+        <!-- 私服 -->
+        <skip.nexus>false</skip.nexus>
+        <deplay.id>smart</deplay.id>
+        <deplay.repository>http://192.168.3.10:6061/repository/smart_hosted/</deplay.repository>
+        <deplay.snapshotRepository>http://192.168.3.10:6061/repository/smart_hosted/</deplay.snapshotRepository>
     </properties>
+
+    <developers>
+        <developer>
+            <name>tianaiyouqing</name>
+            <email>tianaiyouqing@163.com</email>
+            <organization>tianaiyouqing</organization>
+            <organizationUrl>http://tianai.cloud</organizationUrl>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>${deplay.id}</id>
+            <url>${deplay.snapshotRepository}</url>
+        </snapshotRepository>
+        <repository>
+            <id>${deplay.id}</id>
+            <url>${deplay.repository}</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -41,6 +75,93 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.3.0.RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.3.0.RELEASE</version>
+        </dependency>
     </dependencies>
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                    <compilerArgument>-parameters</compilerArgument>
+                </configuration>
+            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.sonatype.plugins</groupId>-->
+<!--                <artifactId>nexus-staging-maven-plugin</artifactId>-->
+<!--                <version>1.6.7</version>-->
+<!--                <extensions>true</extensions>-->
+<!--                <configuration>-->
+<!--                    <skipNexusStagingDeployMojo>${skip.nexus}</skipNexusStagingDeployMojo>-->
+<!--                    <serverId>ossrh</serverId>-->
+<!--                    <nexusUrl>http://oss.sonatype.org/</nexusUrl>-->
+<!--                    <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+            </plugin>
+        </plugins>
+    </build>
 </project>
