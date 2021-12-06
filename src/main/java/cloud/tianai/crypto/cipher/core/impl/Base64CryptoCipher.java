@@ -76,6 +76,11 @@ public class Base64CryptoCipher implements CryptoCipher {
     }
 
     @Override
+    public int getVersion() {
+        return 3;
+    }
+
+    @Override
     public byte[] start(CipherOutputStream source) {
         // output暂时不做处理
         return new byte[0];
