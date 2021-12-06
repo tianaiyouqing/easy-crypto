@@ -26,12 +26,12 @@ import java.util.Arrays;
  */
 @Slf4j
 public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
-    private byte[] iv;
-    private SecretKey secretKey;
-    private byte[] encryptedIV;
-    private byte[] encryptedCEK;
-    private byte[] headerData;
-    private Cipher aesCipher;
+    byte[] iv;
+    SecretKey secretKey;
+    byte[] encryptedIV;
+    byte[] encryptedCEK;
+    byte[] headerData;
+    Cipher internalCipher;
 
     @SneakyThrows
     public AbstractCryptoCipher(Cipher cipher, int model) {
@@ -41,15 +41,15 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
 
     @Override
     public byte[] update(byte[] input, int inputOffset, int inputLen) {
-        return aesCipher.update(input, inputOffset, inputLen);
+        return internalCipher.update(input, inputOffset, inputLen);
     }
 
     @Override
     public byte[] end() throws IllegalBlockSizeException, BadPaddingException {
-        if (aesCipher == null) {
+        if (internalCipher == null) {
             return new byte[0];
         }
-        return aesCipher.doFinal();
+        return internalCipher.doFinal();
     }
 
     @Override
@@ -98,10 +98,18 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
         // 解密文件
         DataInputStream dataInputStream = new DataInputStream(source);
         // 版本号
-        int version = dataInputStream.readInt();
-        if (getVersion() != version) {
-            // 如果不是 v1 版本，那就抛个异常
-            throw new CryptoCipherException("不支持的加密版本:" + version);
+        boolean matchVersion = postProcessBeforeMatchVersion(source);
+        int version = -1;
+        if (matchVersion) {
+            version = dataInputStream.readInt();
+            if (getVersion() != version) {
+                // 如果不是 v1 版本，那就抛个异常
+                throw new CryptoCipherException("不支持的加密版本:" + version);
+            }
+        }
+        byte[] bytes = postProcessAfterMatchVersion(dataInputStream);
+        if (bytes != null) {
+            return bytes;
         }
         int encryptIvLength = dataInputStream.readInt();
         int encryptCekLength = dataInputStream.readInt();
@@ -133,13 +141,32 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
         return null;
     }
 
+    /**
+     * 读取并匹配版本之前，返回true跳过匹配版本
+     * @param source source
+     * @return boolean
+     */
+    protected boolean postProcessBeforeMatchVersion(InputStream source) {
+        return true;
+    }
+
+    /**
+     * 读取并匹配版本之后
+     * @param source source
+     * @return byte[] 不为空则不往下执行，直接返回当前数据，为空则继续往下执行
+     */
+    protected byte[] postProcessAfterMatchVersion(InputStream source) {
+        return null;
+    }
+
+
     @SneakyThrows
     protected void initDecryptAes() {
         // 解密向量
         this.iv = getCipher().doFinal(this.encryptedIV);
         byte[] cekBytes = getCipher().doFinal(this.encryptedCEK);
         this.secretKey = new SecretKeySpec(cekBytes, getAlgorithm());
-        this.aesCipher = createCryptoCipherFromContentMaterial(this.iv, this.secretKey, model);
+        this.internalCipher = createCryptoCipherFromContentMaterial(this.iv, this.secretKey, model);
     }
 
 
@@ -147,7 +174,7 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
     protected void initEncryptAes() {
         this.iv = generateIV();
         this.secretKey = generateCEK();
-        this.aesCipher = createCryptoCipherFromContentMaterial(this.iv, this.secretKey, model);
+        this.internalCipher = createCryptoCipherFromContentMaterial(this.iv, this.secretKey, model);
         encryptedIV = cipher.doFinal(this.iv);
         encryptedCEK = cipher.doFinal(this.secretKey.getEncoded());
     }
@@ -237,6 +264,4 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
     public abstract int getKeyLength();
 
     public abstract int getIvLength();
-
-    public abstract int getVersion();
 }

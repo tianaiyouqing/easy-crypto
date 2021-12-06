@@ -207,7 +207,7 @@ public class CipherInputStream extends SdkFilterInputStream {
             // 做读处理
             // 如果返回了数据，则不往下执行
             bufOut = cryptoCipher.start(this);
-            if (bufOut != null) {
+            if (bufOut != null && bufOut.length > 0) {
                 currPos = 0;
                 return maxPos = bufOut.length;
             }

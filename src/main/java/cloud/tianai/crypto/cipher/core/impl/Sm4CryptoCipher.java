@@ -2,10 +2,12 @@ package cloud.tianai.crypto.cipher.core.impl;
 
 import cloud.tianai.crypto.cipher.core.AbstractCryptoCipher;
 import cloud.tianai.crypto.cipher.core.CryptoCipher;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
+import java.io.InputStream;
 import java.security.SecureRandom;
 
 /**
@@ -24,13 +26,33 @@ public class Sm4CryptoCipher extends AbstractCryptoCipher {
     public static final String KEY_GENERATOR_ALGORITHM = "SM4";
     public static final int KEY_LENGTH_IN_BITS = 128;
     public static final int CIPHER_IV_LENGTH = 16;
-    public static final int VERSION_V1 = 1;
-
     private static final SecureRandom RANDOM = new SecureRandom();
+
+    @Setter
+    public int version = 1;
+    boolean checkVersion;
 
     @SneakyThrows
     public Sm4CryptoCipher(Cipher cipher, int model) {
+        this(cipher, model, true);
+    }
+
+    @SneakyThrows
+    public Sm4CryptoCipher(Cipher cipher, int model, boolean checkVersion) {
         super(cipher, model);
+        this.checkVersion = checkVersion;
+    }
+
+    @SneakyThrows
+    public Sm4CryptoCipher(Cipher cipher, int model, boolean checkVersion, int version) {
+        super(cipher, model);
+        this.checkVersion = checkVersion;
+        this.version = version;
+    }
+
+    @Override
+    protected boolean postProcessBeforeMatchVersion(InputStream source) {
+        return checkVersion;
     }
 
     @Override
@@ -60,6 +82,6 @@ public class Sm4CryptoCipher extends AbstractCryptoCipher {
 
     @Override
     public int getVersion() {
-        return VERSION_V1;
+        return version;
     }
 }
