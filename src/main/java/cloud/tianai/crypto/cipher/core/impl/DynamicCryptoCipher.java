@@ -63,6 +63,12 @@ public class DynamicCryptoCipher extends SimpleCryptoCipher {
         return currentCryptoCipher;
     }
 
+    public CryptoCipher requiredGetCurrentCryptoCipher() {
+        if (currentCryptoCipher == null) {
+            throw new IllegalArgumentException("没有读取到 currentCryptoCipher");
+        }
+        return currentCryptoCipher;
+    }
     protected CryptoCipher doGetCurrentCryptoCipher(int version, boolean matchDefault) {
         Function<SimpleCryptoCipher, CryptoCipher> creator = dynamicCryptoCipherCreatorMap.get(version);
         if (creator != null) {
@@ -129,12 +135,12 @@ public class DynamicCryptoCipher extends SimpleCryptoCipher {
 
     @Override
     public byte[] end() throws IllegalBlockSizeException, BadPaddingException {
-        return currentCryptoCipher.end();
+        return requiredGetCurrentCryptoCipher().end();
     }
 
     @Override
     public byte[] update(byte[] input, int inputOffset, int inputLen) {
-        return currentCryptoCipher.update(input, inputOffset, inputLen);
+        return requiredGetCurrentCryptoCipher().update(input, inputOffset, inputLen);
     }
 
     @Override
@@ -144,7 +150,7 @@ public class DynamicCryptoCipher extends SimpleCryptoCipher {
 
     @Override
     public CryptoCipher recreate() {
-        return currentCryptoCipher.recreate();
+        return requiredGetCurrentCryptoCipher().recreate();
     }
 
     @Override
