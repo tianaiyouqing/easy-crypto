@@ -74,45 +74,56 @@ public class DynamicCryptoCipher extends SimpleCryptoCipher {
         return null;
     }
 
+    @SneakyThrows
+    protected CryptoCipher getCurrentCryptoCipherIfNecessary(CipherInputStream source) {
+        if (currentCryptoCipher == null) {
+            Integer type;
+            if (Cipher.DECRYPT_MODE == getModel()) {
+                // 解密,匹配对应的算法
+                DataInputStream dataInputStream = new DataInputStream(source.getDelegateStream());
+                type = dataInputStream.readInt();
+            } else {
+                type = defaultEncryptType;
+            }
+            this.currentCryptoCipher = doGetCurrentCryptoCipher(type, true);
+            if (currentCryptoCipher == null) {
+                throw new CryptoCipherException("不支持的加密版本:" + type);
+            }
+        }
+        return currentCryptoCipher;
+    }
+
+    @SneakyThrows
+    protected CryptoCipher getCurrentCryptoCipherIfNecessary(CipherOutputStream source) {
+        if (currentCryptoCipher == null) {
+            Integer type;
+            if (Cipher.DECRYPT_MODE == getModel()) {
+                // 解密,匹配对应的算法
+                // 暂时不支持
+                throw new IllegalStateException("OutputStream not support decrypt");
+            } else {
+                type = defaultEncryptType;
+            }
+            this.currentCryptoCipher = doGetCurrentCryptoCipher(type, false);
+            if (currentCryptoCipher == null) {
+                throw new CryptoCipherException("不支持的加密版本:" + type);
+            }
+        }
+        return currentCryptoCipher;
+
+    }
+
+
     @Override
     @SneakyThrows
     public byte[] start(CipherInputStream source) {
-        if (currentCryptoCipher != null) {
-            return currentCryptoCipher.start(source);
-        }
-        Integer type;
-        if (Cipher.DECRYPT_MODE == getModel()) {
-            // 解密,匹配对应的算法
-            DataInputStream dataInputStream = new DataInputStream(source.getDelegateStream());
-            type = dataInputStream.readInt();
-        } else {
-            type = defaultEncryptType;
-        }
-        this.currentCryptoCipher = doGetCurrentCryptoCipher(type, true);
-        if (currentCryptoCipher == null) {
-            throw new CryptoCipherException("不支持的加密版本:" + type);
-        }
-        return currentCryptoCipher.start(source);
+        return getCurrentCryptoCipherIfNecessary(source).start(source);
     }
+
 
     @Override
     public byte[] start(CipherOutputStream source) {
-        if (currentCryptoCipher != null) {
-            return currentCryptoCipher.start(source);
-        }
-        Integer type;
-        if (Cipher.DECRYPT_MODE == getModel()) {
-            // 解密,匹配对应的算法
-            // 暂时不支持
-            throw new IllegalStateException("OutputStream not support decrypt");
-        } else {
-            type = defaultEncryptType;
-        }
-        this.currentCryptoCipher = doGetCurrentCryptoCipher(type, false);
-        if (currentCryptoCipher == null) {
-            throw new CryptoCipherException("不支持的加密版本:" + type);
-        }
-        return currentCryptoCipher.start(source);
+        return getCurrentCryptoCipherIfNecessary(source).start(source);
     }
 
 
@@ -128,7 +139,7 @@ public class DynamicCryptoCipher extends SimpleCryptoCipher {
 
     @Override
     public byte[] earlyLoadingHeaderData(CipherInputStream source) {
-        return currentCryptoCipher.earlyLoadingHeaderData(source);
+        return getCurrentCryptoCipherIfNecessary(source).earlyLoadingHeaderData(source);
     }
 
     @Override
@@ -138,6 +149,6 @@ public class DynamicCryptoCipher extends SimpleCryptoCipher {
 
     @Override
     public byte[] earlyLoadingHeaderData(CipherOutputStream source) {
-        return currentCryptoCipher.earlyLoadingHeaderData(source);
+        return getCurrentCryptoCipherIfNecessary(source).earlyLoadingHeaderData(source);
     }
 }
