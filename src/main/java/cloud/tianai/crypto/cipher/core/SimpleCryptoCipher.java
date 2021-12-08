@@ -6,8 +6,6 @@ import cloud.tianai.crypto.stream.CipherOutputStream;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * @Author: 天爱有情
@@ -78,6 +76,7 @@ public class SimpleCryptoCipher implements CryptoCipher {
         return null;
     }
 
+
     /**
      * 重新创建一个新的 CryptoCipher
      *
@@ -93,20 +92,22 @@ public class SimpleCryptoCipher implements CryptoCipher {
         return 0;
     }
 
+    @Override
+    public void writeBeforeData(byte[] input, int inputOffset, int inputLen) {
+
+    }
+
 
     /**
      * 开始读取信息了, 给加密和解密函数预留自定义读取文件字节接口，用作加密/解密前准备
      *
-     * @param source 原文件流
+     * @param b
+     * @param off
+     * @param len
      */
     @Override
-    public byte[] start(CipherOutputStream source) {
+    public byte[] start(byte[] b, int off, int len) {
         return null;
-    }
-
-    @Override
-    public byte[] earlyLoadingHeaderData(CipherOutputStream source) {
-        return new byte[0];
     }
 
 }

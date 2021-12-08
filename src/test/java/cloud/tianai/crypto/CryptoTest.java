@@ -91,6 +91,28 @@ public class CryptoTest {
         cipherOutputStream.close();
     }
 
+    /**
+     * 使用 CipherOutputStream 加密 源文件, 使用3des加密
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testDecryptByOutputStreamAndDes() throws IOException {
+
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\加密-预览20M.pdf");
+        // 包装成解密流
+        CryptoCipher cryptoCipher = CryptoCipherBuilder.buildDes3Crypt("123456781234567812345678", false);
+//        CipherInputStream cipherInputStream = new CipherInputStream(source, cryptoCipher);
+        // 输出
+        FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\解密-预览20M.pdf");
+        CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cryptoCipher);
+        write(source, cipherOutputStream);
+        outputStream.close();
+        cipherOutputStream.close();
+    }
+
+
     // 使用rsa加解密
 
 

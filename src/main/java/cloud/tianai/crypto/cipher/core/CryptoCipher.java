@@ -44,8 +44,6 @@ public interface CryptoCipher {
 
     byte[] earlyLoadingHeaderData(CipherInputStream source);
 
-    byte[] earlyLoadingHeaderData(CipherOutputStream source);
-
     /**
      * 开始读取信息了, 给加密和解密函数预留自定义读取文件字节接口，用作加密/解密前准备
      *
@@ -53,7 +51,7 @@ public interface CryptoCipher {
      */
     byte[] start(CipherInputStream source);
 
-    byte[] start(CipherOutputStream source);
+    byte[] start(byte[] b, int off, int len);
 
 
     /**
@@ -70,4 +68,5 @@ public interface CryptoCipher {
      */
     int getVersion();
 
+    void writeBeforeData(byte[] input, int inputOffset, int inputLen);
 }

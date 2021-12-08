@@ -7,7 +7,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
-import java.io.InputStream;
 import java.security.SecureRandom;
 
 /**
@@ -30,7 +29,7 @@ public class AesCryptoCipher extends AbstractCryptoCipher {
     private static final SecureRandom RANDOM = new SecureRandom();
     @Setter
     public int version = 1;
-    boolean checkVersion;
+    boolean skipCheckVersion;
     @SneakyThrows
     public AesCryptoCipher(Cipher cipher, int model) {
         this(cipher, model, true);
@@ -38,19 +37,19 @@ public class AesCryptoCipher extends AbstractCryptoCipher {
     @SneakyThrows
     public AesCryptoCipher(Cipher cipher, int model, boolean checkVersion) {
         super(cipher, model);
-        this.checkVersion = checkVersion;
+        this.skipCheckVersion = checkVersion;
     }
 
     @SneakyThrows
-    public AesCryptoCipher(Cipher cipher, int model, boolean checkVersion, int version) {
+    public AesCryptoCipher(Cipher cipher, int model, boolean skipCheckVersion, int version) {
         super(cipher, model);
-        this.checkVersion = checkVersion;
+        this.skipCheckVersion = skipCheckVersion;
         this.version = version;
     }
 
     @Override
-    protected boolean postProcessBeforeMatchVersion(InputStream source) {
-        return checkVersion;
+    protected boolean skipCheckVersion() {
+        return skipCheckVersion;
     }
 
     @Override

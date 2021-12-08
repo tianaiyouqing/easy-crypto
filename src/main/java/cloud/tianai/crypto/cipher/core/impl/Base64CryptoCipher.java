@@ -81,16 +81,11 @@ public class Base64CryptoCipher implements CryptoCipher {
     }
 
     @Override
-    public byte[] start(CipherOutputStream source) {
+    public byte[] start(byte[] b, int off, int len) {
         // output暂时不做处理
         return new byte[0];
     }
 
-    @Override
-    public byte[] earlyLoadingHeaderData(CipherOutputStream source) {
-        // output暂时不做处理
-        return new byte[0];
-    }
 
 
     public byte[] transcode(byte[] source, int offset, int length) {
