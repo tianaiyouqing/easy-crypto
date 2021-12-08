@@ -148,7 +148,6 @@ public class DynamicCryptoCipher extends SimpleCryptoCipher {
         int available = inputStream.available();
         if (available > 0) {
             byte[] update = getCurrentCryptoCipherOrElseThrow().update(bytes, bytes.length - available, available);
-            getCurrentCryptoCipherOrElseThrow().writeBeforeData(update);
         }
         return start;
     }
