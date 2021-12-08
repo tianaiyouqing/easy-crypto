@@ -32,7 +32,7 @@ public class AesCryptoCipher extends AbstractCryptoCipher {
     boolean skipCheckVersion;
     @SneakyThrows
     public AesCryptoCipher(Cipher cipher, int model) {
-        this(cipher, model, true);
+        this(cipher, model, false);
     }
     @SneakyThrows
     public AesCryptoCipher(Cipher cipher, int model, boolean checkVersion) {

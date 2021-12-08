@@ -33,7 +33,7 @@ public class Sm4CryptoCipher extends AbstractCryptoCipher {
 
     @SneakyThrows
     public Sm4CryptoCipher(Cipher cipher, int model) {
-        this(cipher, model, true);
+        this(cipher, model, false);
     }
 
     @SneakyThrows

@@ -67,6 +67,4 @@ public interface CryptoCipher {
      * @return int
      */
     int getVersion();
-
-    void writeBeforeData(byte[] input, int inputOffset, int inputLen);
 }

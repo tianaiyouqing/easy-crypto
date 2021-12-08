@@ -1,6 +1,7 @@
 package cloud.tianai.crypto.cipher;
 
-import cloud.tianai.crypto.cipher.core.impl.DynamicCryptoCipher;
+import cloud.tianai.crypto.cipher.core.CryptoCipher;
+import cloud.tianai.crypto.cipher.core.impl.AesCryptoCipher;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,7 +42,7 @@ public class CryptoCipherBuilder {
      * @return CryptoCipher
      */
     @SneakyThrows
-    public static DynamicCryptoCipher buildDes3Crypt(String secretKey, boolean encrypt) {
+    public static CryptoCipher buildDes3Crypt(String secretKey, boolean encrypt) {
         if (StringUtils.isBlank(secretKey) || secretKey.length() != 24) {
             throw new IllegalArgumentException("3des加密key必须为24位");
         }
@@ -52,7 +53,7 @@ public class CryptoCipherBuilder {
         Cipher cipher = Cipher.getInstance(DES_CIPHER_ALGORITHM);
         int model = encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE;
         cipher.init(model, desKey, ips);
-        return new DynamicCryptoCipher(cipher, model);
+        return new AesCryptoCipher(cipher, model);
     }
 
     /**
@@ -63,11 +64,11 @@ public class CryptoCipherBuilder {
      * @return CryptoCipher
      */
     @SneakyThrows
-    public static DynamicCryptoCipher buildRsaCrypt(Key key, boolean encrypt) {
+    public static CryptoCipher buildRsaCrypt(Key key, boolean encrypt) {
         Cipher cipher = Cipher.getInstance(RSA_CIPHER_ALGORITHM);
         int model = encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE;
         cipher.init(model, key);
-        return new DynamicCryptoCipher(cipher, model);
+        return new AesCryptoCipher(cipher, model);
     }
 
 
@@ -79,11 +80,11 @@ public class CryptoCipherBuilder {
      * @return CryptoCipher
      */
     @SneakyThrows
-    public static DynamicCryptoCipher buildAesCrypt(String secretKey, boolean encrypt) {
+    public static CryptoCipher buildAesCrypt(String secretKey, boolean encrypt) {
         Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
         SecretKeySpec keyspec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), AES_KEY_ALGORITHM);
         int model = encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE;
         cipher.init(model, keyspec);
-        return new DynamicCryptoCipher(cipher, model);
+        return new AesCryptoCipher(cipher, model);
     }
 }

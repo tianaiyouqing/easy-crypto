@@ -63,6 +63,7 @@ public class CryptoTest {
         // 包装成解密流
         CryptoCipher cryptoCipher = CryptoCipherBuilder.buildDes3Crypt("123456781234567812345678", false);
         CipherInputStream cipherInputStream = new CipherInputStream(source, cryptoCipher);
+        int i = cipherInputStream.earlyEncryptGetHeaderSize();
         // 输出
         FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\解密-预览20M.pdf");
         write(cipherInputStream, outputStream);
@@ -340,7 +341,7 @@ public class CryptoTest {
 
 
     public void write(InputStream input, OutputStream output) throws IOException {
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[16];
         int n;
         while (-1 != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
