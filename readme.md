@@ -251,9 +251,6 @@ public class CryptoTest {
     }
 }
 ```
-### 有几点要说
-- CipherOutputStream 暂时只支持加密功能，不支持解密，后续可能会加上改功能，
-  暂时推荐使用 CipherInputStream
 ## 文件校验示例代码
 - 这里示例仅演示`EnhanceCheckedInputStream`的用法， `EnhanceCheckedOutputStream`用法同理
 ```java
