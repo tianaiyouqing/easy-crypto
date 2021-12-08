@@ -107,31 +107,28 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
         boolean matchVersion = skipCheckVersion();
         Integer version = null;
         if (!matchVersion) {
+            // 不至于第一个int都读不到吧... 233
             version = dataInputStream.readInt();
             if (getVersion() != version) {
                 // 如果不是 v1 版本，那就抛个异常
                 throw new CryptoCipherException("不支持的加密版本:" + version);
             }
         }
-        int encryptIvLength = dataInputStream.readInt();
-        int encryptCekLength = dataInputStream.readInt();
-        byte[] encryptedIV = new byte[encryptIvLength];
-        byte[] encryptedCEK = new byte[encryptCekLength];
-
+        byte[] encryptedIV;
+        byte[] encryptedCEK;
         try {
+            int encryptIvLength = dataInputStream.readInt();
+            int encryptCekLength = dataInputStream.readInt();
+            encryptedIV = new byte[encryptIvLength];
+            encryptedCEK = new byte[encryptCekLength];
             dataInputStream.readFully(encryptedIV);
+            dataInputStream.readFully(encryptedCEK);
         } catch (EOFException e) {
             // 数据不够，读取失败
             return null;
         }
 
-        try {
-            dataInputStream.readFully(encryptedCEK);
-        } catch (IOException e) {
-            // 数据不够，读取失败
-            return null;
-        }
-        encryptData = new EncryptData(encryptedIV, encryptedCEK);
+        EncryptData encryptData = new EncryptData(encryptedIV, encryptedCEK);
 
         if (log.isDebugEnabled()) {
             log.debug("init AES Decrypt Cipher \r\n version:{}\r\n IV:{}, \r\n CEK:{},\r\n encryptIV:{}, \r\n encryptCEK:{}",
@@ -171,52 +168,6 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
     public byte[] start(byte[] b, int off, int len) {
         return null;
 //        return getHeaderData(source.getDelegateStream());
-    }
-
-
-    @SneakyThrows
-    protected byte[] decrypt(InputStream source) {
-        // 解密文件
-        DataInputStream dataInputStream = new DataInputStream(source);
-        // 版本号
-        boolean matchVersion = skipCheckVersion();
-        Integer version = null;
-        if (!matchVersion) {
-            version = dataInputStream.readInt();
-            if (getVersion() != version) {
-                // 如果不是 v1 版本，那就抛个异常
-                throw new CryptoCipherException("不支持的加密版本:" + version);
-            }
-        }
-        int encryptIvLength = dataInputStream.readInt();
-        int encryptCekLength = dataInputStream.readInt();
-        byte[] encryptedIV = new byte[encryptIvLength];
-        byte[] encryptedCEK = new byte[encryptCekLength];
-
-        try {
-            dataInputStream.readFully(encryptedIV);
-        } catch (EOFException e) {
-            throw new IOException("读取 IV 失败， 期望读取的IV长度为:" + encryptIvLength);
-        }
-
-        try {
-            dataInputStream.readFully(encryptedCEK);
-        } catch (IOException e) {
-            throw new IOException("读取 cek 失败， 期望读取的cek长度为:" + encryptCekLength);
-        }
-        encryptData = new EncryptData(encryptedIV, encryptedCEK);
-        // 初始化解密
-        createDecryptCipher();
-
-        if (log.isDebugEnabled()) {
-            log.debug("init AES Decrypt Cipher \r\n version:{}\r\n IV:{}, \r\n CEK:{},\r\n encryptIV:{}, \r\n encryptCEK:{}",
-                    version,
-                    Arrays.toString(this.iv),
-                    Arrays.toString(this.secretKey.getEncoded()),
-                    Arrays.toString(encryptedIV),
-                    Arrays.toString(encryptedCEK));
-        }
-        return null;
     }
 
     /**
