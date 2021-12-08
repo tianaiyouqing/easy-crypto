@@ -1,9 +1,7 @@
 package cloud.tianai.crypto;
 
-import cloud.tianai.crypto.check.impl.CRC64Checksum;
-import cloud.tianai.crypto.check.impl.Md5Checksum;
-import cloud.tianai.crypto.check.impl.MultiPartChecksum;
-import cloud.tianai.crypto.check.impl.Sha256Checksum;
+import cloud.tianai.crypto.check.impl.*;
+import cloud.tianai.crypto.cipher.util.CryptoRuntime;
 import cloud.tianai.crypto.stream.EnhanceCheckedInputStream;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
@@ -13,6 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class CheckedTest {
+    static {
+        CryptoRuntime.enableBouncyCastle();
+    }
 
     /**
      * 获取一个文件的 md5
@@ -66,6 +67,20 @@ public class CheckedTest {
 
     }
 
+
+    /**
+     * 获取一个文件的 md5
+     */
+    @Test
+    public void getFileSM3() throws IOException {
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\预览20M.pdf");
+        DigestChecksum checksum = new DigestChecksum("SM3");
+        EnhanceCheckedInputStream checkedInputStream = new EnhanceCheckedInputStream(source, checksum);
+        readAll(checkedInputStream);
+        byte[] md5 = checksum.getCheckValue();
+        System.out.println("sm3:" + Hex.toHexString(md5));
+    }
 
     public void readAll(InputStream input) throws IOException {
         byte[] buffer = new byte[4096];

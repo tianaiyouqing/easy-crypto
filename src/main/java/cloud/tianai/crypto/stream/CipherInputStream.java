@@ -64,8 +64,9 @@ public class CipherInputStream extends SdkFilterInputStream {
         this.bufIn = bufIn;
     }
 
-    public int earlyGetHeaderSize() {
-        return cryptoCipher.earlyLoadingHeaderData(this).length;
+    public int earlyEncryptGetHeaderSize() {
+        byte[] headerData = cryptoCipher.earlyLoadingHeaderData(this);
+        return headerData != null? headerData.length : 0;
     }
 
     @Override

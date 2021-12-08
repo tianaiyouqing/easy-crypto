@@ -2,7 +2,9 @@ package cloud.tianai.crypto.cipher.core;
 
 import cloud.tianai.crypto.exception.CryptoCipherException;
 import cloud.tianai.crypto.stream.CipherInputStream;
-import cloud.tianai.crypto.stream.CipherOutputStream;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,10 +30,11 @@ import java.util.Arrays;
 public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
     byte[] iv;
     SecretKey secretKey;
-    byte[] encryptedIV;
-    byte[] encryptedCEK;
-    byte[] headerData;
+    EncryptData encryptData;
     Cipher internalCipher;
+    byte[] headerData;
+    /** 帮助初始化 internalCipher， internalCipher初始化完后清除该数据.*/
+    private ByteArrayOutputStream beforeInputData = new ByteArrayOutputStream();
 
     @SneakyThrows
     public AbstractCryptoCipher(Cipher cipher, int model) {
@@ -40,8 +43,105 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
     }
 
     @Override
+    @SneakyThrows(IOException.class)
     public byte[] update(byte[] input, int inputOffset, int inputLen) {
-        return internalCipher.update(input, inputOffset, inputLen);
+        // 判断是否已经初始化
+        if (internalCipher != null) {
+            return internalCipher.update(input, inputOffset, inputLen);
+        }
+        // 记录更新来的数据
+        beforeInputData.write(input, inputOffset, inputLen);
+        byte[] headerBytes = beforeInputData.toByteArray();
+        ByteArrayInputStream headerInputStream = new ByteArrayInputStream(headerBytes);
+        // 尝试初始化
+        tryInitCipher(headerInputStream);
+        // 如果初始化失败，返回 0
+        if (internalCipher == null) {
+            return new byte[0];
+        }
+        // internalCipher初始化完后清除掉 beforeInputData
+        beforeInputData.close();
+        int useLength = headerBytes.length - headerInputStream.available();
+        // 如果初始化成功
+        if (useLength == headerBytes.length) {
+            return new byte[0];
+        }
+        if (headerData != null) {
+            byte[] update = update(headerBytes, useLength, headerBytes.length - useLength);
+            byte[] result = new byte[headerData.length + update.length];
+            System.arraycopy(headerData, 0, result, 0, headerData.length);
+            System.arraycopy(update, 0, result, headerData.length, update.length);
+            // 用完就抛弃
+            headerData = null;
+            return result;
+        }
+        return update(headerBytes, useLength, headerBytes.length - useLength);
+    }
+
+    @SneakyThrows
+    protected void tryInitCipher(InputStream inputStream) {
+        if (Cipher.ENCRYPT_MODE == getModel()) {
+            // 加密
+            initEncryptCipher();
+            headerData = getEncryptHeaderBytes();
+        } else {
+            // 尝试读取一下解密数据
+            encryptData = tryGetEncryptData(inputStream);
+            if (encryptData != null && internalCipher == null) {
+                // 初始化解密
+                cipher = createDecryptCipher();
+                // 赋值
+                this.internalCipher = cipher;
+            }
+        }
+    }
+
+    @SneakyThrows
+    private EncryptData tryGetEncryptData(InputStream inputStream) {
+        // 解密文件
+        if (inputStream instanceof CipherInputStream) {
+            inputStream = ((CipherInputStream) inputStream).getDelegateStream();
+        }
+        DataInputStream dataInputStream = new DataInputStream(inputStream);
+        // 版本号
+        boolean matchVersion = skipCheckVersion();
+        Integer version = null;
+        if (!matchVersion) {
+            version = dataInputStream.readInt();
+            if (getVersion() != version) {
+                // 如果不是 v1 版本，那就抛个异常
+                throw new CryptoCipherException("不支持的加密版本:" + version);
+            }
+        }
+        int encryptIvLength = dataInputStream.readInt();
+        int encryptCekLength = dataInputStream.readInt();
+        byte[] encryptedIV = new byte[encryptIvLength];
+        byte[] encryptedCEK = new byte[encryptCekLength];
+
+        try {
+            dataInputStream.readFully(encryptedIV);
+        } catch (EOFException e) {
+            // 数据不够，读取失败
+            return null;
+        }
+
+        try {
+            dataInputStream.readFully(encryptedCEK);
+        } catch (IOException e) {
+            // 数据不够，读取失败
+            return null;
+        }
+        encryptData = new EncryptData(encryptedIV, encryptedCEK);
+
+        if (log.isDebugEnabled()) {
+            log.debug("init AES Decrypt Cipher \r\n version:{}\r\n IV:{}, \r\n CEK:{},\r\n encryptIV:{}, \r\n encryptCEK:{}",
+                    version,
+                    Arrays.toString(this.iv),
+                    Arrays.toString(this.secretKey.getEncoded()),
+                    Arrays.toString(encryptedIV),
+                    Arrays.toString(encryptedCEK));
+        }
+        return encryptData;
     }
 
     @Override
@@ -54,42 +154,23 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
 
     @Override
     public byte[] earlyLoadingHeaderData(CipherInputStream source) {
-        return getHeaderData(source.getDelegateStream());
-    }
-
-    @Override
-    public byte[] earlyLoadingHeaderData(CipherOutputStream source) {
-        return getHeaderData(source.getDelegateStream());
+        tryInitCipher(source);
+        return headerData;
     }
 
     @Override
     public byte[] start(CipherInputStream source) {
-        return getHeaderData(source.getDelegateStream());
-    }
-
-
-    @Override
-    public byte[] start(CipherOutputStream source) {
-        return getHeaderData(source.getDelegateStream());
-    }
-
-    public byte[] getHeaderData(InputStream source) {
-        if (headerData == null) {
-            if (Cipher.ENCRYPT_MODE == getModel()) {
-                // 加密
-                headerData = encrypt();
-            } else {
-                // 解密
-                headerData = decrypt(source);
-            }
+        // inputStream的话进行预加载
+        if (internalCipher == null) {
+            tryInitCipher(source);
         }
         return headerData;
     }
 
-
-    public byte[] getHeaderData(OutputStream source) {
-        headerData = encrypt();
-        return headerData;
+    @Override
+    public byte[] start(byte[] b, int off, int len) {
+        return null;
+//        return getHeaderData(source.getDelegateStream());
     }
 
 
@@ -98,23 +179,19 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
         // 解密文件
         DataInputStream dataInputStream = new DataInputStream(source);
         // 版本号
-        boolean matchVersion = postProcessBeforeMatchVersion(source);
-        int version = -1;
-        if (matchVersion) {
+        boolean matchVersion = skipCheckVersion();
+        Integer version = null;
+        if (!matchVersion) {
             version = dataInputStream.readInt();
             if (getVersion() != version) {
                 // 如果不是 v1 版本，那就抛个异常
                 throw new CryptoCipherException("不支持的加密版本:" + version);
             }
         }
-        byte[] bytes = postProcessAfterMatchVersion(dataInputStream);
-        if (bytes != null) {
-            return bytes;
-        }
         int encryptIvLength = dataInputStream.readInt();
         int encryptCekLength = dataInputStream.readInt();
-        this.encryptedIV = new byte[encryptIvLength];
-        this.encryptedCEK = new byte[encryptCekLength];
+        byte[] encryptedIV = new byte[encryptIvLength];
+        byte[] encryptedCEK = new byte[encryptCekLength];
 
         try {
             dataInputStream.readFully(encryptedIV);
@@ -127,66 +204,58 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
         } catch (IOException e) {
             throw new IOException("读取 cek 失败， 期望读取的cek长度为:" + encryptCekLength);
         }
+        encryptData = new EncryptData(encryptedIV, encryptedCEK);
         // 初始化解密
-        initDecryptAes();
+        createDecryptCipher();
 
         if (log.isDebugEnabled()) {
             log.debug("init AES Decrypt Cipher \r\n version:{}\r\n IV:{}, \r\n CEK:{},\r\n encryptIV:{}, \r\n encryptCEK:{}",
                     version,
                     Arrays.toString(this.iv),
                     Arrays.toString(this.secretKey.getEncoded()),
-                    Arrays.toString(this.encryptedIV),
-                    Arrays.toString(this.encryptedCEK));
+                    Arrays.toString(encryptedIV),
+                    Arrays.toString(encryptedCEK));
         }
         return null;
     }
 
     /**
      * 读取并匹配版本之前，返回true跳过匹配版本
-     * @param source source
+     *
      * @return boolean
      */
-    protected boolean postProcessBeforeMatchVersion(InputStream source) {
-        return true;
-    }
-
-    /**
-     * 读取并匹配版本之后
-     * @param source source
-     * @return byte[] 不为空则不往下执行，直接返回当前数据，为空则继续往下执行
-     */
-    protected byte[] postProcessAfterMatchVersion(InputStream source) {
-        return null;
+    protected boolean skipCheckVersion() {
+        return false;
     }
 
 
     @SneakyThrows
-    protected void initDecryptAes() {
+    protected Cipher createDecryptCipher() {
         // 解密向量
-        this.iv = getCipher().doFinal(this.encryptedIV);
-        byte[] cekBytes = getCipher().doFinal(this.encryptedCEK);
+        byte[] encryptedIV = encryptData.getEncryptedIV();
+        byte[] encryptedCEK = encryptData.getEncryptedCEK();
+        this.iv = getCipher().doFinal(encryptedIV);
+        byte[] cekBytes = getCipher().doFinal(encryptedCEK);
         this.secretKey = new SecretKeySpec(cekBytes, getAlgorithm());
-        this.internalCipher = createCryptoCipherFromContentMaterial(this.iv, this.secretKey, model);
+        return createCryptoCipherFromContentMaterial(this.iv, this.secretKey, model);
     }
 
 
     @SneakyThrows
-    protected void initEncryptAes() {
+    protected Cipher initEncryptCipher() {
         this.iv = generateIV();
         this.secretKey = generateCEK();
         this.internalCipher = createCryptoCipherFromContentMaterial(this.iv, this.secretKey, model);
-        encryptedIV = cipher.doFinal(this.iv);
-        encryptedCEK = cipher.doFinal(this.secretKey.getEncoded());
+        encryptData = new EncryptData();
+        encryptData.setEncryptedIV(cipher.doFinal(this.iv));
+        encryptData.setEncryptedCEK(cipher.doFinal(this.secretKey.getEncoded()));
+        return internalCipher;
     }
 
-    /**
-     * 加密准备
-     *
-     * @return byte[]
-     */
     @SneakyThrows
-    protected byte[] encrypt() {
-        initEncryptAes();
+    protected byte[] getEncryptHeaderBytes() {
+        byte[] encryptedCEK = encryptData.getEncryptedCEK();
+        byte[] encryptedIV = encryptData.getEncryptedIV();
         int encryptCekLength = encryptedCEK.length;
         int encryptIvLength = encryptedIV.length;
 
@@ -209,8 +278,8 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
                     getVersion(),
                     Arrays.toString(this.iv),
                     Arrays.toString(this.secretKey.getEncoded()),
-                    Arrays.toString(this.encryptedIV),
-                    Arrays.toString(this.encryptedCEK));
+                    Arrays.toString(encryptedIV),
+                    Arrays.toString(encryptedCEK));
         }
 
         dataOutputStream.flush();
@@ -251,6 +320,15 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
             iv[i] = 0;
         }
         return iv;
+    }
+
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    public static class EncryptData {
+        byte[] encryptedIV;
+        byte[] encryptedCEK;
     }
 
     protected SecureRandom getRandom() {

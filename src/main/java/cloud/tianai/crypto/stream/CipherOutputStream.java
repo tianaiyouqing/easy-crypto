@@ -25,15 +25,11 @@ public class CipherOutputStream extends SdkFilterOutputStream {
 
     public CipherOutputStream(OutputStream os, CryptoCipher c) {
         super(os);
-        if (Cipher.ENCRYPT_MODE != c.getModel()) {
-            // 暂时不支持加密操作，只支持加密操作
-            throw new CryptoException("CipherOutputStream暂时只支持加密操作，不支持解密, 建议使用 CipherInputStream 做解密操作");
-        }
+//        if (Cipher.ENCRYPT_MODE != c.getModel()) {
+//            // 暂时不支持加密操作，只支持加密操作
+//            throw new CryptoException("CipherOutputStream暂时只支持加密操作，不支持解密, 建议使用 CipherInputStream 做解密操作");
+//        }
         this.cryptoCipher = c;
-    }
-
-    public int earlyGetHeaderSize() {
-        return cryptoCipher.earlyLoadingHeaderData(this).length;
     }
 
 
@@ -52,7 +48,7 @@ public class CipherOutputStream extends SdkFilterOutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
         if (firstRead.compareAndSet(false, true)) {
             // 第一次写
-            byte[] start = cryptoCipher.start(this);
+            byte[] start = cryptoCipher.start(b, off, len);
             if(start != null && start.length > 0) {
                 out.write(start);
             }

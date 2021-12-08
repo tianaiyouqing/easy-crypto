@@ -63,6 +63,7 @@ public class CryptoTest {
         // 包装成解密流
         CryptoCipher cryptoCipher = CryptoCipherBuilder.buildDes3Crypt("123456781234567812345678", false);
         CipherInputStream cipherInputStream = new CipherInputStream(source, cryptoCipher);
+        int i = cipherInputStream.earlyEncryptGetHeaderSize();
         // 输出
         FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\解密-预览20M.pdf");
         write(cipherInputStream, outputStream);
@@ -90,6 +91,28 @@ public class CryptoTest {
         outputStream.close();
         cipherOutputStream.close();
     }
+
+    /**
+     * 使用 CipherOutputStream 加密 源文件, 使用3des加密
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testDecryptByOutputStreamAndDes() throws IOException {
+
+        // 源文件
+        FileInputStream source = new FileInputStream("C:\\Users\\Thinkpad\\Desktop\\加密-预览20M.pdf");
+        // 包装成解密流
+        CryptoCipher cryptoCipher = CryptoCipherBuilder.buildDes3Crypt("123456781234567812345678", false);
+//        CipherInputStream cipherInputStream = new CipherInputStream(source, cryptoCipher);
+        // 输出
+        FileOutputStream outputStream = new FileOutputStream("C:\\Users\\Thinkpad\\Desktop\\解密-预览20M.pdf");
+        CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cryptoCipher);
+        write(source, cipherOutputStream);
+        outputStream.close();
+        cipherOutputStream.close();
+    }
+
 
     // 使用rsa加解密
 
@@ -318,7 +341,7 @@ public class CryptoTest {
 
 
     public void write(InputStream input, OutputStream output) throws IOException {
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[16];
         int n;
         while (-1 != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
