@@ -131,10 +131,8 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
         EncryptData encryptData = new EncryptData(encryptedIV, encryptedCEK);
 
         if (log.isDebugEnabled()) {
-            log.debug("init AES Decrypt Cipher \r\n version:{}\r\n IV:{}, \r\n CEK:{},\r\n encryptIV:{}, \r\n encryptCEK:{}",
+            log.debug("init AES Decrypt Cipher \r\n version:{}\r\n encryptIV:{}, \r\n encryptCEK:{}",
                     version,
-                    Arrays.toString(this.iv),
-                    Arrays.toString(this.secretKey.getEncoded()),
                     Arrays.toString(encryptedIV),
                     Arrays.toString(encryptedCEK));
         }
@@ -225,10 +223,7 @@ public abstract class AbstractCryptoCipher extends SimpleCryptoCipher {
         dataOutputStream.write(encryptedCEK);
 
         if (log.isDebugEnabled()) {
-            log.debug("init AES Encrypt Cipher \r\n version:{}\r\n IV:{}, \r\n CEK:{},\r\n encryptIV:{}, \r\n encryptCEK:{}",
-                    getVersion(),
-                    Arrays.toString(this.iv),
-                    Arrays.toString(this.secretKey.getEncoded()),
+            log.debug("init AES Encrypt Cipher \r\n encryptIV:{}, \r\n encryptCEK:{}",
                     Arrays.toString(encryptedIV),
                     Arrays.toString(encryptedCEK));
         }
