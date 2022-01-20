@@ -14,7 +14,7 @@
     <dependency>
         <groupId>cloud.tianai.crypto</groupId>
         <artifactId>easy-crypto</artifactId>
-        <version>1.0</version>
+        <version>1.0.basic</version>
     </dependency>
 ```
 - 这里示例使用 3des和RSA和自定义加密算法(sm4)和base64 进行加解密文件操作，各位可以使用自己的加密算法进行加解密
