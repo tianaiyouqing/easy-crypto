@@ -9,6 +9,14 @@
   - 特点二: 支持多个校验值一起获取，比如同时获取某文件的 md5和sha256
   - 特点三: 自带了 md5、sha256、crc64 等主流校验算法，开箱即用,且代码简单易于扩展.
 ## 文件加密示例代码
+- 中央仓库maven
+```xml
+    <dependency>
+        <groupId>cloud.tianai.crypto</groupId>
+        <artifactId>easy-crypto</artifactId>
+        <version>1.0</version>
+    </dependency>
+```
 - 这里示例使用 3des和RSA和自定义加密算法(sm4)和base64 进行加解密文件操作，各位可以使用自己的加密算法进行加解密
 ```java
 public class CryptoTest {

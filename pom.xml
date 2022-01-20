@@ -6,12 +6,65 @@
 
     <groupId>cloud.tianai.crypto</groupId>
     <artifactId>easy-crypto</artifactId>
-    <version>0.1.alpha</version>
+    <version>1.0</version>
+
+
+    <name>easy-crypto</name>
+    <description>高性能的加解密文件工具包</description>
+    <url>https://gitee.com/tianai/easy-crypto</url>
+
 
     <properties>
+        <java.version>1.8</java.version>
+        <!-- 打包跳过单元测试 -->
+        <skipTests>true</skipTests>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+<!--        <skip.nexus>false</skip.nexus>-->
+<!--        <deplay.id>ossrh</deplay.id>-->
+<!--        <deplay.repository>https://oss.sonatype.org/service/local/staging/deploy/maven2/</deplay.repository>-->
+<!--        <deplay.snapshotRepository>https://oss.sonatype.org/content/repositories/snapshots/</deplay.snapshotRepository>-->
+
+        <!-- 私服 -->
+        <!--        <skip.nexus>true</skip.nexus>-->
+        <!--        <deplay.id>smart</deplay.id>-->
+        <!--        <deplay.repository>http://192.168.3.10:6061/repository/smart_hosted/</deplay.repository>-->
+        <!--        <deplay.snapshotRepository>http://192.168.3.10:6061/repository/smart_hosted/</deplay.snapshotRepository>-->
+
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
+
+    <licenses>
+        <license>
+            <name>The Mulan License, Version 2.0</name>
+            <url>http://license.coscl.org.cn/MulanPSL2</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>tianaiyouqing</name>
+            <email>tianaiyouqing@163.com</email>
+            <organization>tianaiyouqing</organization>
+            <organizationUrl>http://tianai.cloud</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <url>https://gitee.com/tianai/easy-crypto</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>${deplay.id}</id>
+            <url>${deplay.snapshotRepository}</url>
+        </snapshotRepository>
+        <repository>
+            <id>${deplay.id}</id>
+            <url>${deplay.repository}</url>
+        </repository>
+    </distributionManagement>
+
 
     <dependencies>
         <dependency>
@@ -42,5 +95,77 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                    <compilerArgument>-parameters</compilerArgument>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <skipNexusStagingDeployMojo>${skip.nexus}</skipNexusStagingDeployMojo>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+            </plugin>
+        </plugins>
+    </build>
 </project>
